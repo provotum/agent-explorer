@@ -1,13 +1,13 @@
 import React from 'react'
-import { Typography, Tag, List, Card, Avatar } from 'antd'
+import { Avatar, Card, List, Tag, Typography } from 'antd'
 import Page from '../layout/Page'
-import { formatDistanceToNow, format } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import { useQuery } from 'react-query'
 import { useVeramo } from '@veramo-community/veramo-react'
 import md5 from 'md5'
-import { Route, Link, useParams, useHistory } from 'react-router-dom'
-import CreateRequest from '../components/standard/CreateRequest'
+import { Route, useHistory } from 'react-router-dom'
 import CreateResponse from '../components/standard/CreateResponse'
+import CreateDisclosureRequest from '../components/standard/CreateDisclosoureRequest'
 
 const { Title } = Typography
 
@@ -44,7 +44,10 @@ const Requests = () => {
       header={<Title style={{ fontWeight: 'bold' }}>Requests</Title>}
       rightContent={<RightContent />}
     >
-      <CreateRequest />
+      {/*<CreateRequest />*/}
+      <div style={{ paddingBottom: '20px' }}>
+        <CreateDisclosureRequest />
+      </div>
 
       <List
         dataSource={messages}
@@ -62,11 +65,15 @@ const Requests = () => {
                 formatDistanceToNow(new Date(item.createdAt as string)) +
                 ' ago'
               }
-            ></Card.Meta>
+            />
             {item?.credentials &&
-              item?.credentials.map((vc) => {
+              item?.credentials.map((vc, index) => {
                 return (
-                  <Card style={{ marginTop: 20 }} title="Verifiable Credential">
+                  <Card
+                    style={{ marginTop: 20 }}
+                    title="Verifiable Credential"
+                    key={index}
+                  >
                     <Card.Meta
                       style={{ marginBottom: 15 }}
                       title="Issuer"
@@ -74,7 +81,7 @@ const Requests = () => {
                       avatar={
                         <Avatar size="large" src={uri(vc.issuer.id || '')} />
                       }
-                    ></Card.Meta>
+                    />
                     <div style={{ marginLeft: 55 }}>
                       <Card.Meta
                         style={{ marginBottom: 15 }}
@@ -86,7 +93,7 @@ const Requests = () => {
                             </pre>
                           </code>
                         }
-                      ></Card.Meta>
+                      />
                       <Card.Meta
                         style={{ marginBottom: 15 }}
                         title="Issuance Date"
@@ -94,26 +101,26 @@ const Requests = () => {
                           new Date(vc.issuanceDate),
                           'do MMM yyyy',
                         )}
-                      ></Card.Meta>
+                      />
                       <Card.Meta
                         style={{ marginBottom: 15 }}
                         title="Credential Type"
-                        description={vc.type.map((type) => (
+                        description={vc.type.map((type, index) => (
                           <Tag color="geekblue">{type}</Tag>
                         ))}
-                      ></Card.Meta>
+                      />
                       <Card.Meta
                         style={{ marginBottom: 15 }}
                         title="Proof Type"
                         description={<Tag color="green">{vc.proof.type}</Tag>}
-                      ></Card.Meta>
+                      />
                     </div>
                   </Card>
                 )
               })}
           </Card>
         )}
-      ></List>
+      />
     </Page>
   )
 }

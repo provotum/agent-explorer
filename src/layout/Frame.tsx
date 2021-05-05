@@ -19,6 +19,7 @@ import Discover from '../pages/Discover'
 import Settings from '../pages/Settings'
 import Agents from '../pages/Agents'
 import Agent from '../pages/Agent'
+import Import from '../pages/Import'
 
 const { Header, Content } = Layout
 
@@ -29,7 +30,7 @@ const Frame = () => {
     <Layout style={{ height: '100%' }}>
       <Sidemenu />
       <Layout>
-        <Header style={{ padding: 0 }} className="mobile-header"></Header>
+        <Header style={{ padding: 0 }} className="mobile-header" />
         <Content className="main-content-container">
           {agent ? (
             <>
@@ -46,6 +47,7 @@ const Frame = () => {
               <Route path="/inbox" component={Inbox} />
               <Route path="/network" component={Network} />
               <Route path="/discover" component={Discover} />
+              <Route path="/import" component={Import} />
             </>
           ) : (
             <>

@@ -1,13 +1,14 @@
 import React from 'react'
-import { Typography, Table, Tag } from 'antd'
+import { Collapse, Table, Tag, Typography } from 'antd'
 import Page from '../layout/Page'
 import { format } from 'date-fns'
 import { useHistory } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { useVeramo } from '@veramo-community/veramo-react'
+import CreateCredential from '../components/standard/CreateCredential'
 
 const { Title } = Typography
-
+const { Panel } = Collapse
 const columns = [
   // {
   //   title: 'Explore',
@@ -81,6 +82,13 @@ const Credentials = () => {
 
   return (
     <Page header={<Title style={{ fontWeight: 'bold' }}>Credentials</Title>}>
+      <div style={{ paddingBottom: '20px' }}>
+        <Collapse>
+          <Panel key={1} header={'Issue Credential'}>
+            <CreateCredential />
+          </Panel>
+        </Collapse>
+      </div>
       <Table
         loading={isLoading}
         rowKey={(record) => record.hash}

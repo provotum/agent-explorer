@@ -1,15 +1,15 @@
 import React from 'react'
-import { Layout, Menu, Avatar, Typography, Row, Button } from 'antd'
-import Version from '../components/standard/Version'
+import { Avatar, Button, Layout, Menu, Row, Typography } from 'antd'
 import {
-  EyeOutlined,
-  UserOutlined,
-  SafetyOutlined,
   BarsOutlined,
-  InteractionOutlined,
-  PlusOutlined,
   CheckCircleOutlined,
   CloudServerOutlined,
+  EyeOutlined,
+  ImportOutlined,
+  InteractionOutlined,
+  PlusOutlined,
+  SafetyOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import { useVeramo } from '@veramo-community/veramo-react'
@@ -47,7 +47,11 @@ const mainMenu = [
     label: 'Credentials',
     icon: SafetyOutlined,
   },
-
+  {
+    url: '/import',
+    label: 'Import',
+    icon: ImportOutlined,
+  },
   // {
   //   url: '/network',
   //   label: 'Network',
@@ -181,7 +185,7 @@ const SideMenu = () => {
           marginBottom: 50,
         }}
       >
-        <Menu.Item></Menu.Item>
+        {/* <Menu.Item></Menu.Item>
         <Menu.Item>
           <Link to="/settings">Settings</Link>
           (<Version versionOnly />)
@@ -194,7 +198,7 @@ const SideMenu = () => {
           >
             Contribute
           </a>
-        </Menu.Item>
+        </Menu.Item> */}
       </Menu>
     </Sider>
   )
