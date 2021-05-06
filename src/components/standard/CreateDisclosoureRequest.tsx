@@ -16,7 +16,7 @@ import {
   Typography,
 } from 'antd'
 import {
-  CloseOutlined,
+  CloseCircleOutlined,
   MinusCircleOutlined,
   PlusOutlined,
 } from '@ant-design/icons'
@@ -250,23 +250,22 @@ const CreateDisclosureRequest: React.FC<CreateRequestProps> = ({}) => {
           placeholder="Please select the context"
         />
       </Form.Item>
-      <div>
-        <div style={{ paddingBottom: '7px' }}>
-          <Text>Accepted Issuers</Text>
-        </div>
+      <Form.Item label="Accepted Issuers">
         {issuers.map((issuer, index) => (
-          <Row key={index}>
+          <Row key={index} align="middle" style={{ paddingBottom: '20px' }}>
             <Col flex={'auto'}>
-              <Form.Item>
+              <Form.Item noStyle>
                 <Input
+                  value={issuer.did}
                   placeholder="DID"
                   onChange={(e) => addIssuerDid(e.target.value, index)}
                 />
               </Form.Item>
             </Col>
             <Col flex={'auto'} style={{ paddingRight: 10, paddingLeft: 10 }}>
-              <Form.Item>
+              <Form.Item noStyle>
                 <Input
+                  value={issuer.url}
                   placeholder="URL"
                   onChange={(e) => addIssuerUrl(e.target.value, index)}
                 />
@@ -274,27 +273,31 @@ const CreateDisclosureRequest: React.FC<CreateRequestProps> = ({}) => {
             </Col>
             <Col>
               <Button
-                size={'small'}
-                shape="circle"
+                type={'text'}
+                shape={'round'}
                 onClick={() => {
                   removeIssuer(index)
                 }}
-                icon={<CloseOutlined />}
-              />
+                style={{
+                  color: 'red',
+                }}
+              >
+                <CloseCircleOutlined />
+              </Button>
             </Col>
           </Row>
         ))}
-        <Form.Item>
+        <div>
           <Button
             type="dashed"
             onClick={() => addIssuer()}
             block
             icon={<PlusOutlined />}
           >
-            Add Issuer
+            Add a Trusted Issuer
           </Button>
-        </Form.Item>
-      </div>
+        </div>
+      </Form.Item>
       <Form.Item label={'Reason'}>
         <TextArea
           value={reason}
