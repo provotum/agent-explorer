@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Alert,
   Button,
@@ -37,6 +37,7 @@ import DataImport from '../components/standard/DataImport'
 import JsonBlock from '../components/standard/Json'
 import {
   ICredentialsForSdr,
+  IPresentationValidationResult,
   ISelectiveDisclosureRequest,
 } from '@veramo/selective-disclosure'
 import { ICreateVerifiablePresentationArgs } from '@veramo/credential-w3c'
@@ -47,6 +48,16 @@ import QRCode from 'qrcode.react'
 
 const { Title, Text } = Typography
 const { Panel } = Collapse
+
+const defaultPresentation: ICreateVerifiablePresentationArgs = {
+  presentation: {
+    holder: '',
+    verifier: [],
+    verifiableCredential: [],
+  },
+  save: true,
+  proofFormat: 'jwt',
+}
 
 const columns: ColumnsType<VerifiableCredential> = [
   {
@@ -66,22 +77,6 @@ const columns: ColumnsType<VerifiableCredential> = [
     render: (issuer: any) => issuer.id,
   },
 ]
-
-const getClaimVerificationExtraIcon = (claim: ICredentialsForSdr) => {
-  if (claim.credentials.length > 0) {
-    return <CheckCircleOutlined style={{ color: 'green' }} />
-  } else {
-    return (
-      <Space>
-        <Tooltip title={claim.issuers?.map((i) => i.did).toString()}>
-          <Tag>Requested Issuers</Tag>
-        </Tooltip>
-        <Text style={{ color: 'red' }}>Missing</Text>
-        <CloseCircleOutlined style={{ color: 'red' }} />
-      </Space>
-    )
-  }
-}
 
 const isClaimDisabled = (claim: ICredentialsForSdr): boolean =>
   claim.credentials.length > 0 ? false : true
@@ -103,18 +98,33 @@ const Import: React.FC = () => {
   const [isQrMoldalVisible, setIsQrMoldalVisible] = useState(false)
   const [successfulImport, setSuccessfulImport] = useState(false)
 
+  const [holder, setHolder] = useState('')
+  const [verifier, setVerifier] = useState<string[]>([])
+  const [verifiableCredential, setVerifiableCredential] = useState<{
+    [index: number]: VerifiableCredential
+  }>({})
   const [
     verifiablePresentationArgs,
     setVerifiablePresentationArgs,
-  ] = useState<ICreateVerifiablePresentationArgs>({
-    presentation: {
-      holder: '',
-      verifier: [],
-      verifiableCredential: [],
-    },
-    save: false,
-    proofFormat: 'jwt',
-  })
+  ] = useState<ICreateVerifiablePresentationArgs>(defaultPresentation)
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  useEffect(() => {
+    const credentials = []
+    for (const key in verifiableCredential) {
+      credentials.push(verifiableCredential[key])
+    }
+
+    setVerifiablePresentationArgs({
+      presentation: {
+        holder,
+        verifier,
+        verifiableCredential: credentials,
+      },
+      save: true,
+      proofFormat: 'jwt',
+    })
+  }, [holder, verifier, verifiableCredential])
 
   const saveVc = async (credentials: Array<VerifiableCredential>) => {
     console.log(JSON.stringify(credentials))
@@ -126,38 +136,13 @@ const Import: React.FC = () => {
     setSuccessfulImport(true)
   }
 
-  const setHolder = (identifier: string) => {
-    setVerifiablePresentationArgs({
-      ...verifiablePresentationArgs,
-      presentation: {
-        ...verifiablePresentationArgs.presentation,
-        holder: identifier,
-      },
-    })
-  }
-
-  const rowSelection = {
-    onChange: (
-      selectedRowKeys: React.Key[],
-      selectedRows: VerifiableCredential[],
-    ) => {
-      setVerifiablePresentationArgs({
-        ...verifiablePresentationArgs,
-        presentation: {
-          ...verifiablePresentationArgs.presentation,
-          verifiableCredential: selectedRows.map(
-            (row: VerifiableCredential) => row,
-          ),
-        },
-      })
-    },
-  }
-
   const isSubmittable = () => {
+    for (let i = 0; i < requiredClaims.length; i++) {
+      if (!verifiableCredential[i]) return false
+    }
+
     return (
-      message != undefined &&
-      verifiablePresentationArgs.presentation.verifiableCredential.length > 0 &&
-      verifiablePresentationArgs.presentation.holder
+      message != undefined && verifiablePresentationArgs.presentation.holder
     )
   }
 
@@ -199,15 +184,8 @@ const Import: React.FC = () => {
             return
           }
 
-          // add verifier to VP
-          setVerifiablePresentationArgs({
-            ...verifiablePresentationArgs,
-            presentation: {
-              ...verifiablePresentationArgs.presentation,
-              verifier: [message.from!],
-            },
-          })
-
+          setVerifier([message.from!])
+          setCurrentIndex(1)
           if (claims && claims.length > 0) {
             setRequiredClaims(claims)
             claims.map((claim) => {
@@ -254,6 +232,29 @@ const Import: React.FC = () => {
       )
     }
   }
+  const getClaimVerificationExtraIcon = (
+    claim: ICredentialsForSdr,
+    index: number,
+  ) => {
+    if (claim.credentials.length === 0) {
+      return (
+        <Space>
+          <Tooltip title={claim.issuers?.map((i) => i.did).toString()}>
+            <Tag>Requested Issuers</Tag>
+          </Tooltip>
+          <Text style={{ color: 'red' }}>Missing</Text>
+          <CloseCircleOutlined style={{ color: 'red' }} />
+        </Space>
+      )
+    } else {
+      return (
+        <CheckCircleOutlined
+          style={{ color: 'green' }}
+          hidden={!verifiableCredential[index]}
+        />
+      )
+    }
+  }
 
   return (
     <Page
@@ -296,7 +297,7 @@ const Import: React.FC = () => {
             </Select>
           </Form.Item>
           <Form.Item>
-            <Collapse bordered={false} accordion>
+            <Collapse bordered={false} accordion activeKey={currentIndex}>
               {requiredClaims.map((claim, index) => (
                 <Panel
                   header={
@@ -307,11 +308,30 @@ const Import: React.FC = () => {
                     </>
                   }
                   key={index + 1}
-                  extra={getClaimVerificationExtraIcon(claim)}
+                  extra={getClaimVerificationExtraIcon(claim, index)}
                   disabled={isClaimDisabled(claim)}
                 >
                   <Table
-                    rowSelection={{ ...rowSelection, type: 'radio' }}
+                    rowSelection={{
+                      onChange: (
+                        selectedRowKeys: React.Key[],
+                        selectedRows: VerifiableCredential[],
+                      ) => {
+                        const copy = { ...verifiableCredential }
+                        const vc = selectedRows.map(
+                          (row: VerifiableCredential) => row,
+                        )
+                        copy[index] = vc[0]
+                        setVerifiableCredential(copy)
+
+                        if (currentIndex === requiredClaims.length) {
+                          setCurrentIndex(-1)
+                        } else {
+                          setCurrentIndex(currentIndex + 1)
+                        }
+                      },
+                      type: 'radio',
+                    }}
                     expandable={{
                       expandedRowRender: (credentail) => (
                         <pre>
