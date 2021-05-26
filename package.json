@@ -13,10 +13,10 @@
     "agent-explore": "./bin/bin.js"
   },
   "scripts": {
-    "dev": "craco start",
+    "dev": "PORT=9001 craco start",
     "build": "craco build",
     "test": "craco test",
-    "agent-explore": "./bin/bin.js",
+    "agent-explore": "./bin/bin.js serve -p 9001",
     "upgrade:next": "yarn add @veramo/core@next @veramo/credential-w3c@next @veramo/data-store@next @veramo/did-comm@next @veramo/did-jwt@next @veramo/did-resolver@next @veramo/message-handler@next @veramo/remote-client@next @veramo/selective-disclosure@next"
   },
   "homepage": "https://explore.veramo.dev",
@@ -56,6 +56,7 @@
     "commander": "^7.0.0",
     "express": "^4.17.1",
     "express-favicon": "^2.0.1",
+    "global": "^4.4.0",
     "provotum-ssi-utils": "^1.0.2",
     "qrcode.react": "^1.0.1",
     "react-qr-reader": "^2.2.1"
@@ -63,7 +64,7 @@
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
-    "@craco/craco": "^6.0.0",
+    "@craco/craco": "^6.1.2",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
