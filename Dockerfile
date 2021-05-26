@@ -1,19 +1,19 @@
 # pull official base image
-FROM node:12-alpine3.10
+FROM node:latest
 
 # set working directory
 WORKDIR /app
 
-# set environment
-ENV NODE_ENV docker
-
-# copy production build
+# add app
 COPY bin ./
 COPY build ./
-COPY package.json ./
 
-# install app dependencies
-RUN npm install
+RUN npm init -y
+RUN npm install --save express
+RUN npm install --save express-favicon
+RUN npm install --save commander
+
+EXPOSE 9001
 
 # start app
-CMD ["npm", "run", "agent-explore"]
+CMD ["./bin.js", "serve", "-p 9001"]
