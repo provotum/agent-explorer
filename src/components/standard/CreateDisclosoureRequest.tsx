@@ -7,7 +7,9 @@ import {
   Collapse,
   Form,
   Input,
+  message,
   Modal,
+  Result,
   Row,
   Select,
   Space,
@@ -19,6 +21,9 @@ import {
   CloseCircleOutlined,
   MinusCircleOutlined,
   PlusOutlined,
+  CopyOutlined,
+  QrcodeOutlined,
+  RedoOutlined,
 } from '@ant-design/icons'
 import { useVeramo } from '@veramo-community/veramo-react'
 import { useQuery, useQueryClient } from 'react-query'
@@ -69,6 +74,8 @@ const CreateDisclosureRequest: React.FC<CreateRequestProps> = ({}) => {
   const [panelOpen, setPanelOpen] = useState(false)
   const [isModalVisible, setIsModalVisible] = useState(false)
 
+  const [jwtSdr, setJwtSdr] = useState('')
+
   const cleanedSdrArgs = (): ICreateSelectiveDisclosureRequestArgs => {
     const sdrArgs: ICreateSelectiveDisclosureRequestArgs = {
       data: {
@@ -88,8 +95,9 @@ const CreateDisclosureRequest: React.FC<CreateRequestProps> = ({}) => {
     const request = await agent?.createSelectiveDisclosureRequest(args)
 
     if (request) {
-      await agent?.handleMessage({ raw: request, save: true })
-      query.invalidateQueries(['requests'])
+      setJwtSdr(request)
+      // await agent?.handleMessage({ raw: request, save: true })
+      // query.invalidateQueries(['requests'])
     }
 
     if (args.data.issuer && request) {
@@ -106,8 +114,6 @@ const CreateDisclosureRequest: React.FC<CreateRequestProps> = ({}) => {
         console.log(err)
       }
     }
-    resetClaim()
-    resetForm()
     setLoading(false)
   }
 
@@ -234,6 +240,11 @@ const CreateDisclosureRequest: React.FC<CreateRequestProps> = ({}) => {
     reason,
   })
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(jwtSdr)
+    message.success('Copied to clipboard!')
+  }
+
   const AddClaimForm = (
     <Form layout="vertical">
       <Form.Item label={'Claim Context (Type)'} required>
@@ -319,110 +330,144 @@ const CreateDisclosureRequest: React.FC<CreateRequestProps> = ({}) => {
 
   return (
     <Spin spinning={loading}>
-      <Collapse>
-        <Panel key={1} header={'Create Selective Disclosure Request'}>
-          <Form layout="vertical">
-            <Form.Item label="SRD Issuer" required>
-              <Select
-                onSelect={(value: string) => setIssuer(value)}
-                disabled={!identifiers}
-                allowClear
-              >
-                {identifiers?.map((identifier, index) => (
-                  <Select.Option value={identifier.did!} key={index}>
-                    {identifier.did!}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item label={'Subject'}>
-              <Input
-                placeholder={'DID of the subject'}
-                onChange={(e) => setSubject(e.target.value)}
-              />
-            </Form.Item>
-            <Form.Item label={'Tag'}>
-              <Input
-                placeholder={'Set a tag'}
-                onChange={(e) => setTag(e.target.value)}
-              />
-            </Form.Item>
-            <Form.Item required label={'Claims'}>
-              {createSdrArgs.data.claims &&
-                createSdrArgs.data.claims.map((claim, index) => (
-                  <div key={index} style={{ paddingBottom: '7px' }}>
-                    <Row>
-                      <Col>
-                        <Space>
-                          <Tag color="magenta">{claim.credentialContext}</Tag>
-                          <Tag color="blue">{claim.credentialType}</Tag>
-                          <Tag color="green">{claim.claimType}</Tag>
-                        </Space>
-                      </Col>
-                      <Col flex="auto"></Col>
-                      <Col>
-                        <MinusCircleOutlined
-                          onClick={() => deleteClaim(index)}
-                        />
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
-              <Button
-                type="dashed"
-                onClick={() => setIsModalVisible(true)}
-                block
-                icon={<PlusOutlined />}
-              >
-                Add Claim
-              </Button>
-            </Form.Item>
-            <Form.Item>
-              <Button
-                type="primary"
-                onClick={() => createSDR()}
-                disabled={
-                  createSdrArgs.data.claims.length === 0 ||
-                  !createSdrArgs.data.issuer
-                }
-              >
-                Create SDR
-              </Button>
-            </Form.Item>
-            <Modal
-              visible={isModalVisible}
-              onCancel={handleCancel}
-              width={700}
-              footer={[
-                <Checkbox onChange={(e) => setEssential(e.target.checked)}>
-                  essential
-                </Checkbox>,
+      {jwtSdr && (
+        <Result
+          status="success"
+          title="Successfully created signed Selective Disclosure Request!"
+          subTitle={`Send this JWT to the subject with the DID: ${subject}`}
+          extra={[
+            <Button
+              type="link"
+              icon={<CopyOutlined />}
+              onClick={() => copyToClipboard()}
+              key={'copy'}
+            >
+              Copy to Clipboard
+            </Button>,
+            <Button
+              type="primary"
+              icon={<RedoOutlined />}
+              key={'new'}
+              onClick={() => {
+                resetClaim()
+                resetForm()
+                setLoading(false)
+                setJwtSdr('')
+              }}
+            >
+              Create new Credentials
+            </Button>,
+          ]}
+        />
+      )}
+      {!jwtSdr && (
+        <Collapse>
+          <Panel key={1} header={'Create Selective Disclosure Request'}>
+            <Form layout="vertical">
+              <Form.Item label="SRD Issuer" required>
+                <Select
+                  onSelect={(value: string) => setIssuer(value)}
+                  disabled={!identifiers}
+                  allowClear
+                >
+                  {identifiers?.map((identifier, index) => (
+                    <Select.Option value={identifier.did!} key={index}>
+                      {identifier.did!}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+              <Form.Item label={'Subject'}>
+                <Input
+                  placeholder={'DID of the subject'}
+                  onChange={(e) => setSubject(e.target.value)}
+                />
+              </Form.Item>
+              <Form.Item label={'Tag'}>
+                <Input
+                  placeholder={'Set a tag'}
+                  onChange={(e) => setTag(e.target.value)}
+                />
+              </Form.Item>
+              <Form.Item required label={'Claims'}>
+                {createSdrArgs.data.claims &&
+                  createSdrArgs.data.claims.map((claim, index) => (
+                    <div key={index} style={{ paddingBottom: '7px' }}>
+                      <Row>
+                        <Col>
+                          <Space>
+                            <Tag color="magenta">{claim.credentialContext}</Tag>
+                            <Tag color="blue">{claim.credentialType}</Tag>
+                            <Tag color="green">{claim.claimType}</Tag>
+                          </Space>
+                        </Col>
+                        <Col flex="auto"></Col>
+                        <Col>
+                          <MinusCircleOutlined
+                            onClick={() => deleteClaim(index)}
+                          />
+                        </Col>
+                      </Row>
+                    </div>
+                  ))}
                 <Button
-                  key="back"
-                  type="primary"
-                  onClick={addClaim}
-                  disabled={!credentialContext && !credentialType && !claimType}
+                  type="dashed"
+                  onClick={() => setIsModalVisible(true)}
+                  block
+                  icon={<PlusOutlined />}
                 >
                   Add Claim
-                </Button>,
-              ]}
-            >
-              {AddClaimForm}
-            </Modal>
-          </Form>
+                </Button>
+              </Form.Item>
+              <Form.Item>
+                <Button
+                  type="primary"
+                  onClick={() => createSDR()}
+                  disabled={
+                    createSdrArgs.data.claims.length === 0 ||
+                    !createSdrArgs.data.issuer
+                  }
+                >
+                  Create SDR
+                </Button>
+              </Form.Item>
+              <Modal
+                visible={isModalVisible}
+                onCancel={handleCancel}
+                width={700}
+                footer={[
+                  <Checkbox onChange={(e) => setEssential(e.target.checked)}>
+                    essential
+                  </Checkbox>,
+                  <Button
+                    key="back"
+                    type="primary"
+                    onClick={addClaim}
+                    disabled={
+                      !credentialContext && !credentialType && !claimType
+                    }
+                  >
+                    Add Claim
+                  </Button>,
+                ]}
+              >
+                {AddClaimForm}
+              </Modal>
+            </Form>
 
-          <Collapse>
-            <Panel key={1} header={'Preview'}>
-              <code>
-                <pre>
-                  {cleanedSdrArgs() &&
-                    JSON.stringify(cleanedSdrArgs(), null, 2)}
-                </pre>
-              </code>
-            </Panel>
-          </Collapse>
-        </Panel>
-      </Collapse>
+            <Collapse>
+              <Panel key={1} header={'Preview'}>
+                <code>
+                  <pre>
+                    {cleanedSdrArgs() &&
+                      JSON.stringify(cleanedSdrArgs(), null, 2)}
+                  </pre>
+                </code>
+              </Panel>
+            </Collapse>
+          </Panel>
+        </Collapse>
+      )}
     </Spin>
   )
 }

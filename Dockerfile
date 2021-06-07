@@ -5,15 +5,14 @@ FROM node:latest
 WORKDIR /app
 
 # add app
-COPY bin ./
-COPY build ./
+COPY bin ./bin
+COPY build ./build
 
-RUN npm init -y
-RUN npm install --save express
-RUN npm install --save express-favicon
-RUN npm install --save commander
+# serve the app from a node js server
+COPY bin/package.json ./
+RUN npm install
 
 EXPOSE 9001
 
 # start app
-CMD ["./bin.js", "serve", "-p 9001"]
+CMD ["npm", "run", "start"]

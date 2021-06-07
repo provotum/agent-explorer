@@ -15,7 +15,7 @@ const Connect = () => {
     'http://127.0.0.1:3332/open-api.json',
   )
   const [agentUrl, setAgentUrl] = useState<string>('')
-  const [apiKey, setApiKey] = useState<string>()
+  const [apiKey, setApiKey] = useState<string>('test123')
 
   const newAgentConfig = () => {
     addAgentConfig({

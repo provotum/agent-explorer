@@ -44,9 +44,7 @@ const CreateCredential: React.FC = () => {
   const [signedVc, setSignedVc] = useState<VerifiableCredential | undefined>(
     undefined,
   )
-  const [subject, setSubject] = useState(
-    'did:web:uzh-veramo-cloud-agent.herokuapp.com',
-  )
+  const [subject, setSubject] = useState('')
   const [issuer, setIssuer] = useState('')
   const [context, setContext] = useState('')
   const [type, setType] = useState('')
