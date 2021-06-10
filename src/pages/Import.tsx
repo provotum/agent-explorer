@@ -8,7 +8,6 @@ import {
   message as alertMessage,
   Modal,
   Result,
-  Select,
   Space,
   Table,
   Tag,
@@ -282,21 +281,6 @@ const Import: React.FC = () => {
       {message != undefined && message.type === 'sdr' && !successfulImport && (
         <>
           <Form.Item>
-            <Select
-              onSelect={(value: string) => setHolder(value)}
-              disabled={!identifiers}
-              style={{ width: '100%', height: '100%' }}
-            >
-              {identifiers?.map((identifier) => {
-                return (
-                  <Select.Option value={identifier.did!} key={identifier.did!}>
-                    {getNiceIdentifier(identifier)}
-                  </Select.Option>
-                )
-              })}
-            </Select>
-          </Form.Item>
-          <Form.Item>
             <Collapse bordered={false} accordion activeKey={currentIndex}>
               {requiredClaims.map((claim, index) => (
                 <Panel
@@ -323,6 +307,9 @@ const Import: React.FC = () => {
                         )
                         copy[index] = vc[0]
                         setVerifiableCredential(copy)
+                        if (!holder) {
+                          setHolder(vc[0].credentialSubject.id!)
+                        }
 
                         if (currentIndex === requiredClaims.length) {
                           setCurrentIndex(-1)
